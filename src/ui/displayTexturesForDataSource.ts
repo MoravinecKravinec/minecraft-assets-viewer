@@ -101,7 +101,7 @@ async function displayListOfTextures(dataSource: DataSource) {
           }
           updateDownloadButton();
         } else {
-          showPreviewModal(dataSource, item);
+        showPreviewModal(dataSource, item);
         }
       });
 

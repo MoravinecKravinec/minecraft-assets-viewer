@@ -48,15 +48,15 @@ export class TextureLoaderElement extends HTMLElement {
     }
 
     if (item.image) {
-      const staticTexture = document.createElement("div");
-      staticTexture.style.backgroundImage = `url("${item.image.src}")`;
-      staticTexture.style.backgroundSize = "contain";
-      staticTexture.style.backgroundRepeat = "no-repeat";
-      staticTexture.style.backgroundPosition = "center";
-      staticTexture.style.imageRendering = "pixelated";
-      staticTexture.style.width = `${this.size}px`;
-      staticTexture.style.height = `${this.size}px`;
-      return staticTexture;
+    const staticTexture = document.createElement("div");
+    staticTexture.style.backgroundImage = `url("${item.image.src}")`;
+    staticTexture.style.backgroundSize = "contain";
+    staticTexture.style.backgroundRepeat = "no-repeat";
+    staticTexture.style.backgroundPosition = "center";
+    staticTexture.style.imageRendering = "pixelated";
+    staticTexture.style.width = `${this.size}px`;
+    staticTexture.style.height = `${this.size}px`;
+    return staticTexture;
     }
 
     // Fallback for unknown item types

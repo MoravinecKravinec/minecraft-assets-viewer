@@ -40,19 +40,19 @@ export class LocalDataSource implements DataSource {
     }
 
     if (item.imagePath) {
-      const { imageHandle, mcMetaHandle } = await this.findImageAndMcMeta(item);
+    const { imageHandle, mcMetaHandle } = await this.findImageAndMcMeta(item);
 
-      const image = await this.loadImage(imageHandle);
-      const animation = await this.loadMcMeta(
-        mcMetaHandle,
-        item.mcMetaPath,
-        image
-      );
+    const image = await this.loadImage(imageHandle);
+    const animation = await this.loadMcMeta(
+      mcMetaHandle,
+      item.mcMetaPath,
+      image
+    );
 
-      return {
-        image,
-        animation
-      };
+    return {
+      image,
+      animation
+    };
     }
 
     throw new Error("Item has neither imagePath nor audioPath");
@@ -88,13 +88,13 @@ export class LocalDataSource implements DataSource {
       const [, itemName, mcMeta] = matches as [unknown, string, string];
 
       if (assetType === "textures") {
-        const isAnimated = mcMeta != null;
-        const itemExists = folder.items.has(name);
+      const isAnimated = mcMeta != null;
+      const itemExists = folder.items.has(name);
 
-        if (!itemExists || isAnimated) {
-          folder.items.set(itemName, {
-            imagePath: `${path}/${itemName}.png`,
-            mcMetaPath: isAnimated ? `${path}/${itemName}.png.mcmeta` : undefined
+      if (!itemExists || isAnimated) {
+        folder.items.set(itemName, {
+          imagePath: `${path}/${itemName}.png`,
+          mcMetaPath: isAnimated ? `${path}/${itemName}.png.mcmeta` : undefined
           });
         }
       } else {

@@ -70,13 +70,13 @@ export class GithubDataSource implements DataSource {
       const folder = this.findOrCreateSubfolder(rootFolder, folders);
 
       if (assetType === "textures") {
-        const isAnimated = mcMeta != null;
-        const itemExists = folder.items.has(name);
+      const isAnimated = mcMeta != null;
+      const itemExists = folder.items.has(name);
 
-        if (!itemExists || isAnimated) {
-          folder.items.set(name, {
-            imagePath: `${folders}/${name}.png`,
-            mcMetaPath: isAnimated ? `${folders}/${name}.png.mcmeta` : undefined
+      if (!itemExists || isAnimated) {
+        folder.items.set(name, {
+          imagePath: `${folders}/${name}.png`,
+          mcMetaPath: isAnimated ? `${folders}/${name}.png.mcmeta` : undefined
           });
         }
       } else {
@@ -99,13 +99,13 @@ export class GithubDataSource implements DataSource {
     }
 
     if (item.imagePath) {
-      const image = await this.loadImage(item.imagePath);
-      const animation = await this.loadMcMeta(item.mcMetaPath, image);
+    const image = await this.loadImage(item.imagePath);
+    const animation = await this.loadMcMeta(item.mcMetaPath, image);
 
-      return {
-        image,
-        animation
-      };
+    return {
+      image,
+      animation
+    };
     }
 
     throw new Error("Item has neither imagePath nor audioPath");
