@@ -2,8 +2,8 @@
   "name": "minecraft-textures-viewer",
   "license": "MIT",
   "scripts": {
-    "start": "esbuild src/app.ts src/index.html src/app.css --bundle --minify --loader:.html=copy --outdir=build --watch --serve",
-    "build": "esbuild src/app.ts src/index.html src/app.css --bundle --minify --loader:.html=copy --outdir=build",
+    "start": "esbuild docs/app.ts docs/index.html docs/app.css --bundle --minify --loader:.html=copy --outdir=build --watch --serve",
+    "build": "esbuild docs/app.ts docs/index.html docs/app.css --bundle --minify --loader:.html=copy --outdir=build",
     "publish": "git subtree push --prefix build origin gh-pages"
   },
   "devDependencies": {
