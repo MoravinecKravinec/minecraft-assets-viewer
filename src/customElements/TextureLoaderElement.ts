@@ -1,5 +1,6 @@
 import { DataSource, Item, LoadedItem } from "../dataSource/dataSource";
 import { AnimatedTextureElement } from "./AnimatedTextureElement";
+import { AudioElement } from "./AudioElement";
 
 export class TextureLoaderElement extends HTMLElement {
   public size?: number = 64;
@@ -29,7 +30,14 @@ export class TextureLoaderElement extends HTMLElement {
   }
 
   private getElementForItem(item: LoadedItem) {
-    if (item.animation) {
+    if (item.audio) {
+      const audioElement = document.createElement("audio-element") as AudioElement;
+      audioElement.item = item;
+      audioElement.size = this.size;
+      return audioElement;
+    }
+
+    if (item.animation && item.image) {
       const animatedTexture = document.createElement(
         "animated-texture"
       ) as AnimatedTextureElement;
@@ -39,14 +47,27 @@ export class TextureLoaderElement extends HTMLElement {
       return animatedTexture;
     }
 
-    const staticTexture = document.createElement("div");
-    staticTexture.style.backgroundImage = `url("${item.image.src}")`;
-    staticTexture.style.backgroundSize = "contain";
-    staticTexture.style.backgroundRepeat = "no-repeat";
-    staticTexture.style.backgroundPosition = "center";
-    staticTexture.style.imageRendering = "pixelated";
-    staticTexture.style.width = `${this.size}px`;
-    staticTexture.style.height = `${this.size}px`;
-    return staticTexture;
+    if (item.image) {
+      const staticTexture = document.createElement("div");
+      staticTexture.style.backgroundImage = `url("${item.image.src}")`;
+      staticTexture.style.backgroundSize = "contain";
+      staticTexture.style.backgroundRepeat = "no-repeat";
+      staticTexture.style.backgroundPosition = "center";
+      staticTexture.style.imageRendering = "pixelated";
+      staticTexture.style.width = `${this.size}px`;
+      staticTexture.style.height = `${this.size}px`;
+      return staticTexture;
+    }
+
+    // Fallback for unknown item types
+    const fallback = document.createElement("div");
+    fallback.style.width = `${this.size}px`;
+    fallback.style.height = `${this.size}px`;
+    fallback.style.backgroundColor = "#666";
+    fallback.style.display = "flex";
+    fallback.style.alignItems = "center";
+    fallback.style.justifyContent = "center";
+    fallback.textContent = "?";
+    return fallback;
   }
 }

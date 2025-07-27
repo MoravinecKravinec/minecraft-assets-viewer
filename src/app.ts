@@ -1,4 +1,5 @@
 import { AnimatedTextureElement } from "./customElements/AnimatedTextureElement";
+import { AudioElement } from "./customElements/AudioElement";
 import { TextureLoaderElement } from "./customElements/TextureLoaderElement";
 import { TooltipElement } from "./customElements/TooltipElement";
 import { initialiseDataSourceFromHashUrl } from "./initialiseDataSourceFromHashUrl";
@@ -15,5 +16,6 @@ window.addEventListener("load", async () => {
 });
 
 window.customElements.define("animated-texture", AnimatedTextureElement);
+window.customElements.define("audio-element", AudioElement);
 window.customElements.define("texture-loader", TextureLoaderElement);
 window.customElements.define("tool-tip", TooltipElement);

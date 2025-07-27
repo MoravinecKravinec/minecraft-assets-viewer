@@ -4,7 +4,8 @@ import {
   Folder,
   Item,
   LoadedItem,
-  McMetaAnimation
+  McMetaAnimation,
+  AssetType
 } from "./dataSource";
 import { translateMcMetaAnimation } from "./translateMcMetaAnimation";
 
@@ -39,17 +40,22 @@ export class GithubDataSource implements DataSource {
     menu.append(viewOnGithub);
   }
 
-  async getRootFolder(): Promise<Folder> {
+  async getRootFolder(assetType: AssetType): Promise<Folder> {
     const treeUrl = `https://api.github.com/repos/${this.username}/${this.repo}/git/trees/${this.branch}?recursive=1`;
     const githubDirectoryListing = await fetch(treeUrl);
     const { tree } = await githubDirectoryListing.json();
 
     const rootFolder = createFolder();
 
-    const folderNamesFileNameAndMcMetaRegex = /^(.*)\/(.*)\.png(\.mcmeta)?$/;
+    let regex: RegExp;
+    if (assetType === "textures") {
+      regex = /^(.*)\/(.*)\.png(\.mcmeta)?$/;
+    } else {
+      regex = /^(.*)\/(.*)\.ogg$/;
+    }
 
     for (const item of tree) {
-      const matches = item.path.match(folderNamesFileNameAndMcMetaRegex);
+      const matches = item.path.match(regex);
       if (!matches) continue;
 
       const [, folders, name, mcMeta] = matches as [
@@ -63,13 +69,20 @@ export class GithubDataSource implements DataSource {
 
       const folder = this.findOrCreateSubfolder(rootFolder, folders);
 
-      const isAnimated = mcMeta != null;
-      const itemExists = folder.items.has(name);
+      if (assetType === "textures") {
+        const isAnimated = mcMeta != null;
+        const itemExists = folder.items.has(name);
 
-      if (!itemExists || isAnimated) {
+        if (!itemExists || isAnimated) {
+          folder.items.set(name, {
+            imagePath: `${folders}/${name}.png`,
+            mcMetaPath: isAnimated ? `${folders}/${name}.png.mcmeta` : undefined
+          });
+        }
+      } else {
+        // For sounds
         folder.items.set(name, {
-          imagePath: `${folders}/${name}.png`,
-          mcMetaPath: isAnimated ? `${folders}/${name}.png.mcmeta` : undefined
+          audioPath: `${folders}/${name}.ogg`
         });
       }
     }
@@ -78,13 +91,24 @@ export class GithubDataSource implements DataSource {
   }
 
   async loadItem(item: Item): Promise<LoadedItem> {
-    const image = await this.loadImage(item.imagePath);
-    const animation = await this.loadMcMeta(item.mcMetaPath, image);
+    if (item.audioPath) {
+      const audio = await this.loadAudio(item.audioPath);
+      return {
+        audio
+      };
+    }
 
-    return {
-      image,
-      animation
-    };
+    if (item.imagePath) {
+      const image = await this.loadImage(item.imagePath);
+      const animation = await this.loadMcMeta(item.mcMetaPath, image);
+
+      return {
+        image,
+        animation
+      };
+    }
+
+    throw new Error("Item has neither imagePath nor audioPath");
   }
 
   private findOrCreateSubfolder(rootFolder: Folder, foldersString: string) {
@@ -114,6 +138,21 @@ export class GithubDataSource implements DataSource {
       image.crossOrigin = "anonymous";
       image.addEventListener("load", () => {
         resolve(image);
+      });
+    });
+  }
+
+  private loadAudio(audioPath: string): Promise<HTMLAudioElement> {
+    return new Promise((resolve) => {
+      const audio = new Audio();
+      audio.src = this.getGithubUserContentPath(audioPath);
+      audio.preload = "metadata";
+      audio.addEventListener("canplaythrough", () => {
+        resolve(audio);
+      });
+      audio.addEventListener("error", () => {
+        // If canplaythrough fails, still resolve with the audio element
+        resolve(audio);
       });
     });
   }

@@ -9,14 +9,18 @@ export interface AnimationFrame {
 }
 
 export interface Item {
-  imagePath: string;
+  imagePath?: string;
   mcMetaPath?: string;
+  audioPath?: string;
 }
 
 export interface LoadedItem {
-  image: HTMLImageElement;
+  image?: HTMLImageElement;
   animation?: McMetaAnimation;
+  audio?: HTMLAudioElement;
 }
+
+export type AssetType = "textures" | "sounds";
 
 export interface Folder {
   subfolders: Map<string, Folder>;
@@ -27,6 +31,6 @@ export interface DataSource {
   getNavBarClass(): string;
   addDescriptionToNav(menu: HTMLElement): void;
   addItemsToMenu?(menu: HTMLElement): void;
-  getRootFolder(): Promise<Folder>;
+  getRootFolder(assetType: AssetType): Promise<Folder>;
   loadItem(item: Item): Promise<LoadedItem>;
 }

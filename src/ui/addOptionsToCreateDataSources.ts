@@ -2,6 +2,13 @@ import { GithubDataSource } from "../dataSource/GithubDataSource";
 import { LocalDataSource } from "../dataSource/LocalDataSource";
 import { displayTexturesForDataSource } from "./displayTexturesForDataSource";
 
+// Extend Window interface for showDirectoryPicker
+declare global {
+  interface Window {
+    showDirectoryPicker?: () => Promise<FileSystemDirectoryHandle>;
+  }
+}
+
 export function addOptionsToCreateDataSources() {
   const container = document.querySelector(
     "#dataSourceMenuOpenItems"
@@ -37,9 +44,9 @@ async function openFromGithub() {
 
   window.location.hash = `github/${username}/${repo}/${branch}`;
 
-  displayTexturesForDataSource(
-    new GithubDataSource(username, repo, branch, "")
-  );
+  const dataSource = new GithubDataSource(username, repo, branch, "");
+  (window as any).currentDataSource = dataSource;
+  displayTexturesForDataSource(dataSource);
 }
 
 async function openFromLocal() {
@@ -51,5 +58,7 @@ async function openFromLocal() {
   const directory = await window.showDirectoryPicker();
 
   window.location.hash = "";
-  displayTexturesForDataSource(new LocalDataSource(directory));
+  const dataSource = new LocalDataSource(directory);
+  (window as any).currentDataSource = dataSource;
+  displayTexturesForDataSource(dataSource);
 }
