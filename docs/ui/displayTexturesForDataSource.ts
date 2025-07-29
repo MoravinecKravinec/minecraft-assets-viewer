@@ -265,26 +265,102 @@ async function downloadSelectedTextures() {
   }
 
   try {
-    const zip = new JSZip();
-    
-    for (const texturePath of selectedTextures) {
-      await addTextureToZip(dataSource, texturePath, zip);
+    // If only one asset is selected, handle it specially
+    if (selectedTextures.size === 1) {
+      const texturePath = Array.from(selectedTextures)[0];
+      await downloadSingleAsset(dataSource, texturePath);
+    } else {
+      // Multiple assets - create ZIP as before
+      const zip = new JSZip();
+      
+      for (const texturePath of selectedTextures) {
+        await addTextureToZip(dataSource, texturePath, zip);
+      }
+      
+      // Generate and download the zip file
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(zipBlob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "selected_textures.zip";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
+    
+  } catch (error) {
+    console.error("Error downloading textures:", error);
+    alert("Error downloading textures. Check console for details.");
+  }
+}
+
+async function downloadSingleAsset(dataSource: DataSource, texturePath: string) {
+  // Parse the texture path to get folder and name
+  const lastSlashIndex = texturePath.lastIndexOf("/");
+  const folderName = texturePath.substring(0, lastSlashIndex);
+  const textureName = texturePath.substring(lastSlashIndex + 1);
+
+  // Find the item in the data source
+  const rootFolder = await dataSource.getRootFolder(currentAssetType);
+  const subfolders = getAllSubfolders(rootFolder);
+  
+  let targetItem: Item | null = null;
+  for (const folder of subfolders) {
+    if (folder.name === folderName && folder.items.has(textureName)) {
+      targetItem = folder.items.get(textureName)!;
+      break;
+    }
+  }
+
+  if (!targetItem) {
+    console.error(`Texture not found: ${texturePath}`);
+    return;
+  }
+
+  // Load the item
+  const loadedItem = await dataSource.loadItem(targetItem);
+  
+  // Check if this is an animated texture (has .mcmeta file)
+  if (loadedItem.animation && loadedItem.image) {
+    // Create ZIP with both texture and .mcmeta file
+    const zip = new JSZip();
+    await addTextureToZip(dataSource, texturePath, zip);
     
     // Generate and download the zip file
     const zipBlob = await zip.generateAsync({ type: "blob" });
     const url = URL.createObjectURL(zipBlob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "selected_textures.zip";
+    a.download = `${textureName}.zip`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  } else if (loadedItem.image) {
+    // Static texture - download as raw PNG
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d")!;
+    canvas.width = loadedItem.image.naturalWidth;
+    canvas.height = loadedItem.image.naturalHeight;
+    ctx.drawImage(loadedItem.image, 0, 0);
     
-  } catch (error) {
-    console.error("Error downloading textures:", error);
-    alert("Error downloading textures. Check console for details.");
+    canvas.toBlob((blob) => {
+      if (blob) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${textureName}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    }, "image/png");
+  } else if (loadedItem.audio) {
+    // Audio file - download as raw audio
+    // Note: This would need to be implemented based on how audio is stored
+    console.log("Audio download not yet implemented for single files");
   }
 }
 
